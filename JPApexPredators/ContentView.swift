@@ -10,20 +10,16 @@ import SwiftUI
 struct ContentView: View {
     
     let predators = Predators()
-    
     @State var searchText = ""
+    @State var isAlphabetical = false
+    @State var currentSelection = PredatorType.all
     
     var filteredDinos: [ApexPredatorModel] {
-        if searchText.isEmpty {
-            return predators.apexPredators
-        } else {
-            return predators.apexPredators.filter{
-//                predator in
-//                predator.name.localizedCaseInsensitiveContains(searchText)
-                $0.name.localizedCaseInsensitiveContains(searchText)
-
-            }
-        }
+        
+        predators.filterType(by: currentSelection)
+        
+        predators.sort(by: isAlphabetical)
+        return predators.search(for: searchText)
     }
     
     var body: some View {
@@ -65,12 +61,41 @@ struct ContentView: View {
                         } // end of HStack
                     } // end of Label
                 } // end of list
+                
                 .navigationTitle("Apex Predators")
                 .searchable(text: $searchText)
                 .autocorrectionDisabled()
                 .animation(.default, value: searchText)
+                .toolbar{
+                    ToolbarItem(placement: .topBarLeading){
+                        Button{
+                            withAnimation{
+                                isAlphabetical.toggle()
+                            }
+                        } label: {
+//                            if alphabetical{
+//                                Image(systemName: "film")
+//                            } else {
+//                                Image(systemName: "textformat")
+//                            }
+                            Image(systemName: isAlphabetical ? "film" : "textformat")
+                                .symbolEffect(.bounce, value: isAlphabetical)
+                        }
+                    } // end of  toolbarItem
+                    ToolbarItem(placement: .topBarTrailing){
+                        Menu{
+                            Picker("Filter", selection: $currentSelection.animation()){
+                                ForEach(PredatorType.allCases){
+                                    type in
+                                    Label(type.rawValue.capitalized, systemImage: type.icon)
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "slider.horizontal.3")
+                        }
+                    } // end of toolbarItem
+                } // end of toolbar
             } // end of NavigationStack
-            
         } // end of VStack
         .preferredColorScheme(/*@START_MENU_TOKEN@*/.dark/*@END_MENU_TOKEN@*/)
     } //end of some View
